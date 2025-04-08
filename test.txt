@@ -1,0 +1,49 @@
+curl -X POST http://localhost:5000/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "testpass"}'
+
+curl -X POST http://localhost:5000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "testpass"}'
+
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImV4cCI6MTc0NDIzMzIxNH0.ns4das5V22OHwJ1zbQ5SFEyCbjAt-bzTtoVBrBnbhYo
+
+curl -X POST http://localhost:5000/books \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImV4cCI6MTc0NDIzMzIxNH0.ns4das5V22OHwJ1zbQ5SFEyCbjAt-bzTtoVBrBnbhYo"\
+  -H "Content-Type: application/json" \
+  -d "{\"title\": \"Harry Potter and the Sorcerer's Stone\", \"author\": \"J.K. Rowling\", \"category\": \"Fantasy\", \"price\": 19.99, \"rating\": 4.9, \"publishedDate\": \"1997-06-26\"}"
+{
+  "bookId": 2,
+  "message": "Book created"
+}
+
+curl -X GET "http://localhost:5000/books?author=Rowling"   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImV4cCI6MTc0NDIzMzIxNH0.ns4das5V22OHwJ1zbQ5SFEyCbjAt-bzTtoVBrBnbhYo"
+{
+  "books": [
+    {
+      "author": "J.K. Rowling",
+      "category": "Fantasy",
+      "id": 2,
+      "price": 19.99,
+      "publishedDate": "1997-06-26",
+      "rating": 4.9,
+      "title": "Harry Potter and the Sorcerer's Stone"
+    }
+  ]
+}
+
+curl -X GET "http://localhost:5000/books?search=Harry" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImV4cCI6MTc0NDIzMzIxNH0.ns4das5V22OHwJ1zbQ5SFEyCbjAt-bzTtoVBrBnbhYo"
+{
+  "books": [
+    {
+      "author": "J.K. Rowling",
+      "category": "Fantasy",
+      "id": 2,
+      "price": 19.99,
+      "publishedDate": "1997-06-26",
+      "rating": 4.9,
+      "title": "Harry Potter and the Sorcerer's Stone"
+    }
+  ]
+}
