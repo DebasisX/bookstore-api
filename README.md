@@ -11,7 +11,6 @@ This project demonstrates user signup/login (JWT-based authentication) and CRUD 
 - [Example Requests](#example-requests)
 - [Running Tests](#running-tests)
 - [Dockerization](#dockerization)
-- [Assumptions](#assumptions)
 
 ## Features
 
