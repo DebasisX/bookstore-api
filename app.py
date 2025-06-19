@@ -1,24 +1,19 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify, g, make_response, send_from_directory, redirect, render_template # Added render_template
 import sqlite3
 import jwt
 import datetime
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
-""" 
-Used camelCase for professionalism and code formatting using black
-and boilerplate code snippets from my other projects 
-"""
-
-# config load from .env, i have used sample.
-DATABASE = "/data/bookstore.db"  # making it persistent
+DATABASE = "bookstore.db"
 SECRET_KEY = "secret_key"
 
-app = Flask(__name__)
+# Initialize Flask app, pointing to the 'templates' folder for templates
+# and 'static' for static files (though you don't have a static folder in this example yet)
+app = Flask(__name__) # Removed template_folder='templates', as this is the default
 app.config["SECRET_KEY"] = SECRET_KEY
 
-
-# connect to the db
+# Connect to SQLite
 def getDb():
     dbPath = app.config.get("DATABASE", DATABASE)
     db = getattr(g, "_database", None)
@@ -27,25 +22,19 @@ def getDb():
         db.row_factory = sqlite3.Row
     return db
 
-
-# initialize db, creating the tables
+# Initialize DB
 def initDb():
     with app.app_context():
         db = getDb()
         cursor = db.cursor()
-        # users table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT UNIQUE,
                 password TEXT
             )
-        """
-        )
-        # books table
-        cursor.execute(
-            """
+        """)
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS books (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
@@ -55,27 +44,20 @@ def initDb():
                 rating REAL,
                 published_date TEXT
             )
-        """
-        )
+        """)
         db.commit()
 
-
-@app.teardown_appcontext  # this is to close the connection after a call is handled
+@app.teardown_appcontext
 def closeConnection(exception):
     db = getattr(g, "_database", None)
     if db is not None:
         db.close()
 
-
-# JWT auth boilerplate code!
+# Secure token decorator using cookie
 def tokenRequired(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = None
-        if "Authorization" in request.headers:
-            authHeader = request.headers["Authorization"]
-            if authHeader.startswith("Bearer "):
-                token = authHeader.split(" ")[1]
+        token = request.cookies.get("token")
         if not token:
             return jsonify({"message": "Token is missing!"}), 401
         try:
@@ -85,11 +67,9 @@ def tokenRequired(f):
             print(e)
             return jsonify({"message": "Token is invalid!"}), 401
         return f(currentUserId, *args, **kwargs)
-
     return decorated
 
-
-# signup
+# Signup
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -111,8 +91,7 @@ def signup():
     except sqlite3.IntegrityError:
         return jsonify({"message": "User already exists."}), 409
 
-
-# login
+# Login with cookie
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -126,10 +105,9 @@ def login():
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
     user = cursor.fetchone()
-    # verification of password, JWT with username
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"message": "Invalid credentials"}), 401
-    # expiration set to 24 hrs
+
     token = jwt.encode(
         {
             "userId": user["id"],
@@ -139,10 +117,23 @@ def login():
         algorithm="HS256",
     )
 
-    return jsonify({"token": token})
+    resp = make_response(jsonify({"message": "Login successful"}))
+    resp.set_cookie(
+        "token", token,
+        httponly=True,
+        secure=False,
+        samesite='Strict'
+    )
+    return resp
 
+# Logout
+@app.route("/logout", methods=["POST"])
+def logout():
+    resp = make_response(jsonify({"message": "Logged out"}))
+    resp.set_cookie("token", "", expires=0)
+    return resp
 
-# new book
+# Create book
 @app.route("/books", methods=["POST"])
 @tokenRequired
 def createBook(currentUserId):
@@ -156,22 +147,20 @@ def createBook(currentUserId):
 
     if not title or not author:
         return jsonify({"message": "Title and author are required"}), 400
-    # insertion of the book in db
+
     db = getDb()
     cursor = db.cursor()
     cursor.execute(
         """
         INSERT INTO books (title, author, category, price, rating, published_date)
         VALUES (?, ?, ?, ?, ?, ?)
-    """,
+        """,
         (title, author, category, price, rating, publishedDate),
     )
     db.commit()
-    bookId = cursor.lastrowid  # last id to return back what was inserted
-    return jsonify({"message": "Book created", "bookId": bookId}), 201
+    return jsonify({"message": "Book created", "bookId": cursor.lastrowid}), 201
 
-
-# get all books with filtering, search, pagination, and sorting
+# Get books
 @app.route("/books", methods=["GET"])
 @tokenRequired
 def getBooks(currentUserId):
@@ -185,8 +174,8 @@ def getBooks(currentUserId):
     page = int(queryParams.get("page", 1))
     perPage = int(queryParams.get("perPage", 10))
 
-    baseQuery = "SELECT * FROM books WHERE 1=1"  # evaluates to true always so can add AND conditions, I learnt this in SQL injection CS50 Lecture 7 Harvard!
-    params = []  # to add to the base
+    baseQuery = "SELECT * FROM books WHERE 1=1"
+    params = []
     if author:
         baseQuery += " AND author LIKE ?"
         params.append(f"%{author}%")
@@ -203,8 +192,8 @@ def getBooks(currentUserId):
         baseQuery += f" ORDER BY {sortBy} {'ASC' if order.lower() == 'asc' else 'DESC'}"
     else:
         baseQuery += " ORDER BY id ASC"
-    # Example: page 3 with 10 per page -> skip first 20 books.
-    offset = (page - 1) * perPage  # skips record
+
+    offset = (page - 1) * perPage
     baseQuery += " LIMIT ? OFFSET ?"
     params.extend([perPage, offset])
 
@@ -213,24 +202,21 @@ def getBooks(currentUserId):
     cursor.execute(baseQuery, params)
     books = cursor.fetchall()
 
-    booksList = []
-    for book in books:
-        booksList.append(
-            {
-                "id": book["id"],
-                "title": book["title"],
-                "author": book["author"],
-                "category": book["category"],
-                "price": book["price"],
-                "rating": book["rating"],
-                "publishedDate": book["published_date"],
-            }
-        )
+    booksList = [
+        {
+            "id": book["id"],
+            "title": book["title"],
+            "author": book["author"],
+            "category": book["category"],
+            "price": book["price"],
+            "rating": book["rating"],
+            "publishedDate": book["published_date"],
+        } for book in books
+    ]
 
     return jsonify({"books": booksList})
 
-
-# get book by ID
+# Book by ID
 @app.route("/books/<int:bookId>", methods=["GET"])
 @tokenRequired
 def getBookById(currentUserId, bookId):
@@ -241,7 +227,7 @@ def getBookById(currentUserId, bookId):
     if not book:
         return jsonify({"message": "Book not found"}), 404
 
-    bookData = {
+    return jsonify({
         "id": book["id"],
         "title": book["title"],
         "author": book["author"],
@@ -249,11 +235,9 @@ def getBookById(currentUserId, bookId):
         "price": book["price"],
         "rating": book["rating"],
         "publishedDate": book["published_date"],
-    }
-    return jsonify(bookData)
+    })
 
-
-# update book by ID
+# Update book
 @app.route("/books/<int:bookId>", methods=["PUT"])
 @tokenRequired
 def updateBookById(currentUserId, bookId):
@@ -271,36 +255,38 @@ def updateBookById(currentUserId, bookId):
     price = data.get("price", book["price"])
     rating = data.get("rating", book["rating"])
     publishedDate = data.get("publishedDate", book["published_date"])
-    # i don't need to explain this
+
     cursor.execute(
         """
         UPDATE books SET title = ?, author = ?, category = ?, price = ?, rating = ?, published_date = ?
         WHERE id = ?
-    """,
+        """,
         (title, author, category, price, rating, publishedDate, bookId),
     )
     db.commit()
     return jsonify({"message": "Book updated"})
 
-
-# delete book by ID
+# Delete book
 @app.route("/books/<int:bookId>", methods=["DELETE"])
 @tokenRequired
-def deleteBookById(currentUserId, bookId):  # passing currentUserId because of JWT
+def deleteBookById(currentUserId, bookId):
     db = getDb()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM books WHERE id = ?", (bookId,))
     book = cursor.fetchone()
     if not book:
         return jsonify({"message": "Book not found"}), 404
-    # Nor this
+
     cursor.execute("DELETE FROM books WHERE id = ?", (bookId,))
     db.commit()
     return jsonify({"message": "Book deleted"})
 
+# Serve frontend
+@app.route('/')
+def serveIndex():
+    # Corrected: Render the template directly, don't redirect to it as a static file
+    return render_template('index.html')
 
 if __name__ == "__main__":
     initDb()
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-# code formatted using black app.py

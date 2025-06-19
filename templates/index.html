@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookstore App</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/liZf/Y7s5fG1fW/Q7vj1/w1tK2n+5fM1j6tV+5/k7O/5rJ+0+FjT/yR+k9T+G9fQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      background-color: #f0f2f5; /* Light gray background */
+      font-family: 'Inter', sans-serif;
+    }
+    .container {
+      max-width: 960px; /* Wider container for better layout */
+      margin-top: 50px;
+      margin-bottom: 50px;
+    }
+    .card {
+      border-radius: 15px; /* Rounded corners for cards */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    }
+    .form-control, .btn {
+      border-radius: 8px; /* Rounded corners for inputs and buttons */
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+    .btn-success {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+    .btn-success:hover {
+      background-color: #218838;
+      border-color: #218838;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+    .btn-danger:hover {
+      background-color: #c82333;
+      border-color: #c82333;
+    }
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #138496;
+    }
+    .table thead {
+      background-color: #e9ecef;
+    }
+    .table th, .table td {
+      vertical-align: middle;
+    }
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .book-actions button {
+        margin-right: 5px;
+    }
+    .pagination .page-link {
+        border-radius: 8px;
+        margin: 0 3px;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    /* Custom Toast/Message Box styles */
+    .message-box-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+    .message-box {
+        min-width: 250px;
+        padding: 15px;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        transform: translateY(-20px);
+    }
+    .message-box.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .message-box.success { background-color: #28a745; }
+    .message-box.error { background-color: #dc3545; }
+    .message-box.info { background-color: #17a2b8; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Message Box Container -->
+  <div id="messageBoxContainer" class="message-box-container"></div>
+
+  <!-- Initial Options: Login/Signup -->
+<div id="initial-options" class="card p-4 shadow-sm" style="max-width: 400px; margin: auto;">
+  <h2 class="text-center mb-4">Welcome to Bookstore</h2>
+  <div class="d-grid gap-3">
+    <button class="btn btn-primary btn-lg" onclick="showLoginForm()">Login</button>
+    <button class="btn btn-secondary btn-lg" onclick="showSignupForm()">New User? Sign Up</button>
+  </div>
+</div>
+
+<!-- Sign Up Form -->
+<form id="signup-form" class="card p-4 shadow-sm d-none" style="max-width: 400px; margin: auto;">
+  <h3 class="text-center mb-4">Sign Up</h3>
+  <div class="mb-3">
+    <input type="email" id="signup-email" class="form-control" placeholder="Email" required>
+  </div>
+  <div class="mb-3">
+    <input type="password" id="signup-password" class="form-control" placeholder="Password" required>
+  </div>
+  <button type="submit" class="btn btn-success w-100 mb-2">Sign Up</button>
+  <button type="button" class="btn btn-link w-100" onclick="showLoginForm()">Already have an account? Login</button>
+</form>
+
+<!-- Login Form -->
+<form id="login-form" class="card p-4 shadow-sm d-none" style="max-width: 400px; margin: auto;">
+  <h3 class="text-center mb-4">Login</h3>
+  <div class="mb-3">
+    <input type="email" id="login-email" class="form-control" placeholder="Email" required>
+  </div>
+  <div class="mb-3">
+    <input type="password" id="login-password" class="form-control" placeholder="Password" required>
+  </div>
+  <button type="submit" class="btn btn-primary w-100 mb-2">Login</button>
+  <button type="button" class="btn btn-link w-100" onclick="showSignupForm()">New user? Sign up</button>
+</form>
+
+  <!-- Main Section: Books Dashboard -->
+  <div id="main-section" class="card p-4 shadow-sm d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="mb-0">Books Dashboard</h3>
+      <div class="header-buttons">
+        <button class="btn btn-success" onclick="showAddBookForm()">
+          <i class="fas fa-plus-circle"></i> Add Book
+        </button>
+        <button class="btn btn-danger" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter and Search -->
+    <div class="mb-4 row g-3 align-items-end">
+      <div class="col-md-4">
+        <label for="search-input" class="form-label">Search by Title</label>
+        <input type="text" id="search-input" class="form-control" placeholder="Search by title">
+      </div>
+      <div class="col-md-3">
+        <label for="filter-author" class="form-label">Filter by Author</label>
+        <input type="text" id="filter-author" class="form-control" placeholder="Author">
+      </div>
+      <div class="col-md-3">
+        <label for="filter-category" class="form-label">Filter by Category</label>
+        <input type="text" id="filter-category" class="form-control" placeholder="Category">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-info w-100" onclick="fetchBooks()">
+          <i class="fas fa-filter"></i> Filter
+        </button>
+      </div>
+    </div>
+
+    <!-- Sort Options -->
+    <div class="mb-4 row g-3 align-items-end">
+        <div class="col-md-4">
+            <label for="sort-by" class="form-label">Sort By</label>
+            <select id="sort-by" class="form-select">
+                <option value="">None</option>
+                <option value="price">Price</option>
+                <option value="rating">Rating</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="sort-order" class="form-label">Order</label>
+            <select id="sort-order" class="form-select">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-info w-100" onclick="fetchBooks()">
+                <i class="fas fa-sort"></i> Sort
+            </button>
+        </div>
+    </div>
+
+    <!-- Book List Table -->
+    <div class="table-responsive">
+      <table class="table table-striped table-hover mt-3">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Rating</th>
+            <th>Published Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="book-list-body">
+          <!-- Books will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+      <ul class="pagination justify-content-center" id="pagination-controls">
+        <!-- Pagination links will be generated here -->
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Add Book Form -->
+  <form id="add-book-form" class="card p-4 shadow-sm d-none">
+    <h3 class="text-center mb-4">Add New Book</h3>
+    <div class="mb-3">
+      <input type="text" id="add-title" class="form-control" placeholder="Title" required>
+    </div>
+    <div class="mb-3">
+      <input type="text" id="add-author" class="form-control" placeholder="Author" required>
+    </div>
+    <div class="mb-3">
+      <input type="text" id="add-category" class="form-control" placeholder="Category">
+    </div>
+    <div class="mb-3">
+      <input type="number" step="0.01" id="add-price" class="form-control" placeholder="Price">
+    </div>
+    <div class="mb-3">
+      <input type="number" step="0.1" min="0" max="5" id="add-rating" class="form-control" placeholder="Rating (0-5)">
+    </div>
+    <div class="mb-3">
+      <input type="date" id="add-published-date" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-success w-100 mb-2">Add Book</button>
+    <button type="button" class="btn btn-secondary w-100" onclick="showMainSection()">Cancel</button>
+  </form>
+
+  <!-- Edit Book Form -->
+  <form id="edit-book-form" class="card p-4 shadow-sm d-none">
+    <h3 class="text-center mb-4">Edit Book</h3>
+    <input type="hidden" id="edit-book-id">
+    <div class="mb-3">
+      <input type="text" id="edit-title" class="form-control" placeholder="Title" required>
+    </div>
+    <div class="mb-3">
+      <input type="text" id="edit-author" class="form-control" placeholder="Author" required>
+    </div>
+    <div class="mb-3">
+      <input type="text" id="edit-category" class="form-control" placeholder="Category">
+    </div>
+    <div class="mb-3">
+      <input type="number" step="0.01" id="edit-price" class="form-control" placeholder="Price">
+    </div>
+    <div class="mb-3">
+      <input type="number" step="0.1" min="0" max="5" id="edit-rating" class="form-control" placeholder="Rating (0-5)">
+    </div>
+    <div class="mb-3">
+      <input type="date" id="edit-published-date" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mb-2">Update Book</button>
+    <button type="button" class="btn btn-secondary w-100" onclick="showMainSection()">Cancel</button>
+  </form>
+
+  <!-- Book Details View -->
+  <div id="book-details-section" class="card p-4 shadow-sm d-none">
+    <h3 class="text-center mb-4">Book Details</h3>
+    <div id="book-details-content" class="mb-4">
+      <!-- Book details will be displayed here -->
+    </div>
+    <button type="button" class="btn btn-secondary w-100" onclick="showMainSection()">Back to List</button>
+  </div>
+</div>
+
+<!-- Bootstrap 5 JS Bundle (Popper and JS) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
+  // --- UI Element References ---
+  const initialOptions = document.getElementById('initial-options');
+  const signupForm = document.getElementById('signup-form');
+  const loginForm = document.getElementById('login-form');
+  const mainSection = document.getElementById('main-section');
+  const addBookForm = document.getElementById('add-book-form');
+  const editBookForm = document.getElementById('edit-book-form');
+  const bookDetailsSection = document.getElementById('book-details-section');
+
+  const bookListBody = document.getElementById('book-list-body');
+  const paginationControls = document.getElementById('pagination-controls');
+  const messageBoxContainer = document.getElementById('messageBoxContainer');
+
+  // Filter/Sort elements
+  const searchInput = document.getElementById('search-input');
+  const filterAuthor = document.getElementById('filter-author');
+  const filterCategory = document.getElementById('filter-category');
+  const sortBy = document.getElementById('sort-by');
+  const sortOrder = document.getElementById('sort-order');
+
+  let currentPage = 1;
+  const perPage = 10; // Books per page
+
+  // --- UI State Management ---
+  function hideAllSections() {
+    initialOptions.classList.add('d-none');
+    signupForm.classList.add('d-none');
+    loginForm.classList.add('d-none');
+    mainSection.classList.add('d-none');
+    addBookForm.classList.add('d-none');
+    editBookForm.classList.add('d-none');
+    bookDetailsSection.classList.add('d-none');
+  }
+
+  function showSection(sectionElement) {
+    hideAllSections();
+    sectionElement.classList.remove('d-none');
+  }
+
+  function showLoginForm() {
+    showSection(loginForm);
+  }
+
+  function showSignupForm() {
+    showSection(signupForm);
+  }
+
+  function showMainSection() {
+    showSection(mainSection);
+    fetchBooks(); // Refresh book list when returning to main section
+  }
+
+  function showAddBookForm() {
+    showSection(addBookForm);
+    addBookForm.reset(); // Clear previous form data
+  }
+
+  // --- Message Box Function ---
+  function showMessage(message, type = 'info', duration = 3000) {
+    const messageBox = document.createElement('div');
+    messageBox.className = `message-box alert alert-${type}`; // Using Bootstrap alerts for styling
+    messageBox.textContent = message;
+    messageBoxContainer.appendChild(messageBox);
+
+    // Trigger reflow to enable transition
+    void messageBox.offsetWidth;
+    messageBox.classList.add('show');
+
+    setTimeout(() => {
+      messageBox.classList.remove('show');
+      messageBox.addEventListener('transitionend', () => messageBox.remove());
+    }, duration);
+  }
+
+
+  // --- Event Listeners for Forms ---
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+
+    try {
+      const res = await fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(data.message, 'success');
+        showLoginForm();
+      } else {
+        showMessage(data.message, 'error');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      showMessage('An error occurred during signup.', 'error');
+    }
+  });
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(data.message, 'success');
+        showMainSection(); // Transition to the main dashboard
+      } else {
+        showMessage(data.message, 'error');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      showMessage('An error occurred during login.', 'error');
+    }
+  });
+
+  addBookForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('add-title').value;
+    const author = document.getElementById('add-author').value;
+    const category = document.getElementById('add-category').value;
+    const price = parseFloat(document.getElementById('add-price').value);
+    const rating = parseFloat(document.getElementById('add-rating').value);
+    const publishedDate = document.getElementById('add-published-date').value;
+
+    const bookData = { title, author, category, price, rating, publishedDate };
+
+    try {
+      const res = await fetch('/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(data.message, 'success');
+        showMainSection(); // Go back to book list
+      } else {
+        showMessage(data.message, 'error');
+      }
+    } catch (error) {
+      console.error('Add book error:', error);
+      showMessage('An error occurred while adding the book.', 'error');
+    }
+  });
+
+  editBookForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const bookId = document.getElementById('edit-book-id').value;
+    const title = document.getElementById('edit-title').value;
+    const author = document.getElementById('edit-author').value;
+    const category = document.getElementById('edit-category').value;
+    const price = parseFloat(document.getElementById('edit-price').value);
+    const rating = parseFloat(document.getElementById('edit-rating').value);
+    const publishedDate = document.getElementById('edit-published-date').value;
+
+    const bookData = { title, author, category, price, rating, publishedDate };
+
+    try {
+      const res = await fetch(`/books/${bookId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(data.message, 'success');
+        showMainSection(); // Go back to book list
+      } else {
+        showMessage(data.message, 'error');
+      }
+    } catch (error) {
+      console.error('Update book error:', error);
+      showMessage('An error occurred while updating the book.', 'error');
+    }
+  });
+
+  // --- API Calls and UI Updates ---
+  async function fetchBooks() {
+    const search = searchInput.value;
+    const author = filterAuthor.value;
+    const category = filterCategory.value;
+    const sort = sortBy.value;
+    const order = sortOrder.value;
+
+    let url = `/books?page=${currentPage}&perPage=${perPage}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (author) url += `&author=${encodeURIComponent(author)}`;
+    if (category) url += `&category=${encodeURIComponent(category)}`;
+    if (sort) url += `&sortBy=${encodeURIComponent(sort)}&order=${encodeURIComponent(order)}`;
+
+    try {
+      const res = await fetch(url);
+      if (res.status === 401) { // Unauthorized, redirect to login
+        showMessage('Session expired or not logged in. Please log in again.', 'error');
+        showSection(initialOptions);
+        return;
+      }
+      const data = await res.json();
+
+      bookListBody.innerHTML = ''; // Clear existing list
+      if (data.books && data.books.length > 0) {
+        data.books.forEach(book => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.category || 'N/A'}</td>
+            <td>₹${book.price ? book.price.toFixed(2) : 'N/A'}</td>
+            <td>${book.rating ? book.rating.toFixed(1) : 'N/A'}</td>
+            <td>${book.publishedDate || 'N/A'}</td>
+            <td class="book-actions">
+              <button class="btn btn-info btn-sm" onclick="showBookDetails(${book.id})">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-warning btn-sm text-white" onclick="showEditBookForm(${book.id})">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.id})">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </td>
+          `;
+          bookListBody.appendChild(row);
+        });
+        // Assuming your backend sends total count or similar to handle pagination
+        // For now, simple pagination based on perPage
+        updatePagination(data.books.length); // Dummy pagination update
+      } else {
+        bookListBody.innerHTML = '<tr><td colspan="7" class="text-center">No books found.</td></tr>';
+        updatePagination(0);
+      }
+    } catch (error) {
+      console.error('Fetch books error:', error);
+      showMessage('An error occurred while fetching books.', 'error');
+      bookListBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load books.</td></tr>';
+    }
+  }
+
+  function updatePagination(currentBooksCount) {
+    paginationControls.innerHTML = '';
+    // This is a simplified pagination. In a real app, you'd get total count from backend.
+    // Assuming if currentBooksCount < perPage, it's the last page.
+    const hasNextPage = currentBooksCount === perPage;
+
+    const prevClass = currentPage === 1 ? 'disabled' : '';
+    paginationControls.innerHTML += `
+      <li class="page-item ${prevClass}">
+        <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+      </li>
+    `;
+
+    // Only show current page, and next/prev
+    paginationControls.innerHTML += `
+      <li class="page-item active"><a class="page-link" href="#">${currentPage}</a></li>
+    `;
+
+    const nextClass = hasNextPage ? '' : 'disabled';
+    paginationControls.innerHTML += `
+      <li class="page-item ${nextClass}">
+        <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+      </li>
+    `;
+  }
+
+  function changePage(page) {
+    if (page < 1) return;
+    // For simplicity, assuming a high enough total if next page is requested
+    // In a real app, you'd check if `page` is greater than total_pages from backend.
+    if (page > currentPage && document.querySelector('.pagination .page-item.disabled')) {
+        // If next is disabled, don't go forward
+        return;
+    }
+    currentPage = page;
+    fetchBooks();
+  }
+
+
+  async function showBookDetails(bookId) {
+    try {
+      const res = await fetch(`/books/${bookId}`);
+      if (res.status === 401) {
+        showMessage('Session expired or not logged in. Please log in again.', 'error');
+        showSection(initialOptions);
+        return;
+      }
+      const book = await res.json();
+      if (res.ok) {
+        document.getElementById('book-details-content').innerHTML = `
+          <p><strong>Title:</strong> ${book.title}</p>
+          <p><strong>Author:</strong> ${book.author}</p>
+          <p><strong>Category:</strong> ${book.category || 'N/A'}</p>
+          <p><strong>Price:</strong> ₹${book.price ? book.price.toFixed(2) : 'N/A'}</p>
+          <p><strong>Rating:</strong> ${book.rating ? book.rating.toFixed(1) : 'N/A'}</p>
+          <p><strong>Published Date:</strong> ${book.publishedDate || 'N/A'}</p>
+        `;
+        showSection(bookDetailsSection);
+      } else {
+        showMessage(book.message, 'error');
+      }
+    } catch (error) {
+      console.error('Fetch book details error:', error);
+      showMessage('An error occurred while fetching book details.', 'error');
+    }
+  }
+
+  async function showEditBookForm(bookId) {
+    try {
+      const res = await fetch(`/books/${bookId}`);
+      if (res.status === 401) {
+        showMessage('Session expired or not logged in. Please log in again.', 'error');
+        showSection(initialOptions);
+        return;
+      }
+      const book = await res.json();
+      if (res.ok) {
+        document.getElementById('edit-book-id').value = book.id;
+        document.getElementById('edit-title').value = book.title;
+        document.getElementById('edit-author').value = book.author;
+        document.getElementById('edit-category').value = book.category || '';
+        document.getElementById('edit-price').value = book.price || '';
+        document.getElementById('edit-rating').value = book.rating || '';
+        document.getElementById('edit-published-date').value = book.publishedDate || '';
+        showSection(editBookForm);
+      } else {
+        showMessage(book.message, 'error');
+      }
+    } catch (error) {
+      console.error('Fetch book for edit error:', error);
+      showMessage('An error occurred while loading book for editing.', 'error');
+    }
+  }
+
+  async function deleteBook(bookId) {
+    if (!confirm('Are you sure you want to delete this book?')) { // Using confirm temporarily, will replace with custom modal
+        return;
+    }
+    try {
+      const res = await fetch(`/books/${bookId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(data.message, 'success');
+        fetchBooks(); // Refresh list after deletion
+      } else {
+        showMessage(data.message, 'error');
+      }
+    } catch (error) {
+      console.error('Delete book error:', error);
+      showMessage('An error occurred while deleting the book.', 'error');
+    }
+  }
+
+  async function logout() {
+    try {
+      const res = await fetch('/logout', { method: 'POST' });
+      if (res.ok) {
+        showMessage('Logged out successfully!', 'info');
+        showSection(initialOptions);
+      } else {
+        showMessage('Logout failed.', 'error');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      showMessage('An error occurred during logout.', 'error');
+    }
+  }
+
+  // --- Initial Load ---
+  // Check if a token exists (implies a previous login session) and attempt to fetch books
+  // This is a simple check; a more robust app would validate the token.
+  if (document.cookie.includes('token')) {
+      showMainSection();
+  } else {
+      showSection(initialOptions);
+  }
+</script>
+</body>
+</html>
