@@ -1,118 +1,181 @@
-# Bookstore API with Flask & SQLite
+# 📚 Bookstore API with Flask & SQLite
 
-A simple RESTful API for a Bookstore Application built with Flask and SQLite.  
-This project demonstrates user signup/login (JWT-based authentication) and CRUD operations on books with filtering, pagination, and sorting.
+A full-stack Bookstore Application with:
 
-## Table of Contents
+- **Backend**: Flask, SQLite, JWT authentication
+- **Frontend**: HTML/CSS (templates/index.html), Bootstrap
+- **Containerization**: Docker & Docker Compose
+- **Testing**: Python unittest, Coverage report
 
-- [Features](#features)
-- [Setup Instructions](#setup-instructions)
-- [API Endpoints](#api-endpoints)
-- [Example Requests](#example-requests)
-- [Running Tests](#running-tests)
-- [Dockerization](#dockerization)
+---
 
-## Features
+## 🗂 Project Structure
 
-- **User Authentication**: 
-  - Sign up a new user.
-  - Login and receive a JWT token.
-- **Books API**:
-  - Create, get, update, and delete books.
-  - Filtering by author, category, rating.
-  - Search by title (partial match).
-  - Pagination and sorting (by price or rating).
-- **Error Handling**:  
-  - Proper HTTP status codes for errors and validations.
-- **Unit Tests**: Basic tests covering signup and login endpoints.
-- **Docker Support**: Containerized application.
+```
+.
+├── app.py
+├── templates/
+│   └── index.html
+├── test_app.py
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
 
-## Setup Instructions
+---
 
-1. **Clone the repository (if using GitHub) or download the project folder.**
+## 🚀 Installation
 
-2. **Create a virtual environment (optional):**
+### Prerequisites
 
-   python3 -m venv venv
-   source venv/bin/activate
+- Python 3.8+
+- Docker & Docker Compose (optional)
 
-3. **Install the dependencies:**
+### Backend Setup
 
-    pip install flask pyjwt werkzeug
+```bash
+git clone <repo_url>
+cd bookstore-api
 
-4. **Run the application:**
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-    python app.py
+# Install dependencies
+pip install -r requirements.txt
 
-The server will start at http://127.0.0.1:5000!
+# Initialize and run
+python app.py
+```
 
-# API Endpoints
-Authentication
+By default, the server runs at [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-# POST /signup
-Request Body:
+### Frontend
 
+The frontend is served from `templates/index.html`. It uses Bootstrap for styling. Simply navigate to the root URL:
+
+[http://127.0.0.1:5000](http://127.0.0.1:5000) to view the UI.
+
+---
+
+## 📬 API Endpoints
+
+### Authentication
+
+| Endpoint       | Method | Description                    |
+| -------------- | ------ | ------------------------------ |
+| `/signup`      | POST   | Register new user             |
+| `/login`       | POST   | Login, sets HTTP-only cookie  |
+| `/logout`      | POST   | Logout, clears cookie         |
+
+#### Request Body (JSON)
+
+```json
 {
   "email": "user@example.com",
-  "password": "YourSecurePassword"
+  "password": "YourPassword"
 }
+```
 
-# POST /login
-Request Body:
+### Books (Protected, Cookie-based JWT)
 
-{
-  "email": "user@example.com",
-  "password": "YourSecurePassword"
-}
-Books (Protected - JWT token required in the Authorization header as Bearer <token>)
+| Endpoint              | Method | Description                             |
+| --------------------- | ------ | --------------------------------------- |
+| `/books`              | POST   | Create new book                         |
+| `/books`              | GET    | List books (filter, search, sort, page) |
+| `/books/<id>`         | GET    | Get single book by ID                   |
+| `/books/<id>`         | PUT    | Update book by ID                       |
+| `/books/<id>`         | DELETE | Delete book by ID                       |
 
-### Example Requests (using cURL)
+#### Query Parameters for `GET /books`
 
-# Sign Up
+- `author`: partial match
+- `category`: partial match
+- `rating`: exact match
+- `search`: title partial match
+- `sortBy`: `price` or `rating`
+- `order`: `asc` | `desc` (default `asc`)
+- `page`: page number (default 1)
+- `perPage`: items per page (default 10)
 
-curl -X POST -H "Content-Type: application/json" \
--d '{"email": "user@example.com", "password": "YourSecurePassword"}' \
-http://127.0.0.1:5000/signup
+---
 
-# Login
+## 🛠 Examples (cURL)
 
-curl -X POST -H "Content-Type: application/json" \
--d '{"email": "user@example.com", "password": "YourSecurePassword"}' \
-http://127.0.0.1:5000/login
+### Sign Up
 
-# Create a Book (Replace <token> with your JWT)
+```bash
+curl -X POST http://127.0.0.1:5000/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"mypassword"}'
+```
 
-curl -X POST -H "Content-Type: application/json" \
--H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImV4cCI6MTc0NDIzMjAxN30.DC2WZTAAm6GmErAN0db8vYDs8RLLadEuhkQ9kD6Rcas" \
--d '{"title": "The Great Gatsby", "author": "F. Scott Fitzgerald", "category": "Classic", "price": 10.99, "rating": 4.3, "publishedDate": "1925-04-10"}' \
-http://127.0.0.1:5000/books
+### Login
 
-# List Books with Filtering & Pagination
+```bash
+curl -X POST http://127.0.0.1:5000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"mypassword"}' \
+  -c cookies.txt
+```
 
-curl -X GET -H "Authorization: Bearer <token>" \
-"http://127.0.0.1:5000/books?sortBy=price&order=asc&page=1&perPage=10"
+### Create Book
 
-# Running Tests
-Basic unit tests have been provided in test_app.py using Python's unittest module.
-To run the tests, simply execute:
+```bash
+curl -X POST http://127.0.0.1:5000/books \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"title":"1984","author":"Orwell","category":"Dystopia","price":9.99,"rating":4.5,"publishedDate":"1949-06-08"}'
+```
 
-python -m unittest test_app.py
+### List Books with Pagination & Sorting
 
-# Dockerization
-A Dockerfile is provided to containerize the application. To build and run the Docker container:
+```bash
+curl -X GET "http://127.0.0.1:5000/books?sortBy=price&order=desc&page=1&perPage=5" \
+  -b cookies.txt
+```
 
-# Build the Docker image:
+---
 
+## 🧪 Testing & Coverage
+
+```bash
+# Run tests
+python3 -m unittest test_app.py
+
+# Coverage
+pip install coverage
+coverage run -m unittest test_app.py
+coverage report -m
+```
+
+**Coverage Report**:
+
+```
+Name          Stmts   Miss  Cover
+---------------------------------
+app.py          183     24    87%
+test_app.py      69      1    99%
+TOTAL           252     25    90%
+```
+
+---
+
+## 🐳 Docker
+
+### Build & Run (Docker)
+
+```bash
 docker build -t bookstore-api .
-or using compose
-docker-compose up --build
-
-
-# Run the Docker container:
-
 docker run -p 5000:5000 bookstore-api
-or if using compose 
-docker-compose up 
-The API will then be available at http://127.0.0.1:5000.
+```
 
-Example RUN is shown in the test.txt!
+### Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+---
+
