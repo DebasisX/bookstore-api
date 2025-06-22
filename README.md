@@ -165,16 +165,34 @@ coverage report -m
 - Confirm Deletion
 
 These interact with a real temporary SQLite DB.
+✅ **Unit Tests**  
+- ✅ `test_unit_signup_db_error`: Uses `unittest.mock` to simulate an `sqlite3.IntegrityError`, covering error handling in user signup logic.
 
-✅ API Tests
-✅ /signup + /login tested (test_api_signup_and_login)
-✅ /books endpoints tested end-to-end (test_api_book_crud_operations)
-✅ Unauthorized access tested (test_book_creation_without_token)
+✅ **Integration Tests**  
+- ✅ Full flow tested via `test_api_book_crud_operations`:  
+  - Signup  
+  - Login  
+  - Create Book  
+  - Read All Books (List)  
+  - Read Book by ID  
+  - Update Book  
+  - Delete Book  
+  - Confirm Deletion  
+- These interact with a real temporary SQLite DB.
 
-Also:
-- Token is passed via Cookie, consistent with your @tokenRequired decorator.
-- Tests are written using the unittest module as specified.
-- Covers both happy and unhappy paths (success + failure).
+✅ **API Tests**  
+- ✅ `/signup` and `/login` tested (`test_api_signup_and_login`)  
+- ✅ `/books` endpoints tested end-to-end (`test_api_book_crud_operations`)  
+- ✅ Unauthorized access tested (`test_book_creation_without_token`)
+
+🔒 **Auth Handling**
+- Token is passed via **Cookie**, consistent with your `@tokenRequired` decorator.
+
+🧪 **Testing Framework**
+- Tests are written using the `unittest` module as specified.
+
+🎯 **Coverage**
+- Covers both **happy** (success) and **unhappy** (failure) paths.
 
 **Coverage Report**:
 
