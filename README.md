@@ -150,26 +150,11 @@ coverage run -m unittest test_app.py
 coverage report -m
 ```
 
-✅ Unit Tests
-✅ test_unit_signup_db_error: uses unittest.mock to simulate an sqlite3.IntegrityError, covering error handling in user signup logic.
-
-✅ Integration Tests
-✅ Full flow tested via test_api_book_crud_operations:
-
-- Signup + Login
-- Create Book
-- Read All Books (List)
-- Read Book by ID
-- Update Book
-- Delete Book
-- Confirm Deletion
-
-These interact with a real temporary SQLite DB.
 ✅ **Unit Tests**  
-- ✅ `test_unit_signup_db_error`: Uses `unittest.mock` to simulate an `sqlite3.IntegrityError`, covering error handling in user signup logic.
+- `test_unit_signup_db_error`: Uses `unittest.mock` to simulate an `sqlite3.IntegrityError`, covering error handling in user signup logic.  
 
 ✅ **Integration Tests**  
-- ✅ Full flow tested via `test_api_book_crud_operations`:  
+- Full flow tested via `test_api_book_crud_operations`:  
   - Signup  
   - Login  
   - Create Book  
@@ -178,12 +163,12 @@ These interact with a real temporary SQLite DB.
   - Update Book  
   - Delete Book  
   - Confirm Deletion  
-- These interact with a real temporary SQLite DB.
+- These interact with a real temporary SQLite DB.  
 
 ✅ **API Tests**  
-- ✅ `/signup` and `/login` tested (`test_api_signup_and_login`)  
-- ✅ `/books` endpoints tested end-to-end (`test_api_book_crud_operations`)  
-- ✅ Unauthorized access tested (`test_book_creation_without_token`)
+- `/signup` and `/login` tested (`test_api_signup_and_login`)  
+- `/books` endpoints tested end-to-end (`test_api_book_crud_operations`)  
+- Unauthorized access tested (`test_book_creation_without_token`)  
 
 🔒 **Auth Handling**
 - Token is passed via **Cookie**, consistent with your `@tokenRequired` decorator.
