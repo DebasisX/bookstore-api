@@ -31,7 +31,7 @@ jobs:
 
       - name: Install Keploy
         run: |
-          curl -s https://raw.githubusercontent.com/keploy/keploy/main/install.sh | bash
+          curl --silent -O -L https://keploy.io/install.sh && source install.sh
 
       - name: Run Keploy Tests
         run: |
