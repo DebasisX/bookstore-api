@@ -1,0 +1,38 @@
+name: Keploy API Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  keploy-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run App in Background
+        run: |
+          nohup python app.py &
+
+      - name: Install Keploy
+        run: |
+          curl -s https://raw.githubusercontent.com/keploy/keploy/main/install.sh | bash
+
+      - name: Run Keploy Tests
+        run: |
+          keploy test -c "python app.py" --delay 10s

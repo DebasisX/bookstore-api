@@ -117,3 +117,13 @@ docker-compose up
 The API will then be available at http://127.0.0.1:5000.
 
 Example RUN is shown in the test.txt!
+[Download Updated README.md](sandbox:/mnt/data/README.md)
+
+## 🧪 API Testing with Keploy
+
+All API tests were generated using the [Keploy Chrome Extension](https://github.com/keploy/extension) and executed via the [Keploy Dashboard](https://app.keploy.io).
+
+✅ Test Suite: All tests passed  
+📸 Screenshots:
+
+![Keploy Passed Tests](./Screenshot%20from%202025-06-28%2000-59-51.png)

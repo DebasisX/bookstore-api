@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: Bookstore API
+  version: 1.0.0
+  description: API for user registration, login, and book management.
+
+servers:
+  - url: http://localhost:5000
+
+paths:
+  /signup:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '201':
+          description: User created
+        '409':
+          description: Email already exists
+
+  /login:
+    post:
+      summary: Login and receive JWT cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful
+
+  /books:
+    post:
+      summary: Add a new book (auth required)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                author: { type: string }
+                category: { type: string }
+                price: { type: number }
+                rating: { type: number }
+                publishedDate: { type: string }
+              required: [title, author]
+      responses:
+        '201':
+          description: Book added
+
+    get:
+      summary: List books with filters (auth required)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [price, rating] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [asc, desc] }
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: perPage
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: List of books
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token

@@ -1,0 +1,29 @@
+# curl.txt (UPDATED)
+
+# Signup
+curl -X POST http://localhost:5050/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test123@b2s.com", "password": "securepassword"}'
+
+# Login
+curl -X POST http://localhost:5050/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test123@b2s.com", "password": "securepassword"}' \
+  -c cookies.txt
+
+# Create Book
+curl -X POST http://localhost:5050/books \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "title": "1984",
+    "author": "George Orwell",
+    "category": "Dystopia",
+    "price": 9.99,
+    "rating": 4.7,
+    "publishedDate": "1949-06-08"
+}'
+
+# Get Books with Filters
+curl -X GET "http://localhost:5050/books?search=orwell&sortBy=price&order=asc&page=1&perPage=5" \
+  -b cookies.txt
