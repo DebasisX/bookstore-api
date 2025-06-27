@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
@@ -25,14 +25,10 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Run App in Background
-        run: |
-          nohup python app.py &
-
-      - name: Install Keploy
+      - name: Install Keploy CLI
         run: |
           curl --silent -O -L https://keploy.io/install.sh && source install.sh
 
       - name: Run Keploy Tests
         run: |
-          keploy test -c "python app.py" --delay 10
+          sudo -E keploy test -c "python app.py" --delay 10
