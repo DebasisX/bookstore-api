@@ -35,4 +35,4 @@ jobs:
 
       - name: Run Keploy Tests
         run: |
-          keploy test -c "python app.py" --delay 10s
+          keploy test -c "python app.py" --delay 10
