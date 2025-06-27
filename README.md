@@ -142,4 +142,4 @@ keploy test -c "python3 app.py" --delay 5
 ⚙️ GitHub Actions Integration
 Keploy tests run automatically on every push via GitHub Actions:
 
-![Keploy Test Result](./keploy-test.png)
+![Keploy Test Result](./keploy_test.png)
