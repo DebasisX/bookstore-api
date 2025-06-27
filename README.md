@@ -127,3 +127,23 @@ All API tests were generated using the [Keploy Chrome Extension](https://github.
 📸 Screenshots:
 
 ![Keploy Passed Tests](./Screenshot%20from%202025-06-28%2000-59-51.png)
+
+## 🧪 Keploy API Testing & CI/CD
+✅ Recorded real API calls using:
+
+keploy record -c "python3 app.py" --record-timer 60
+
+🔁 Replayed tests using:
+keploy test -c "python3 app.py" --delay 5
+🧪 Results: 2 Passed / 4 Total
+
+📊 Coverage: 32% (coverage.json)
+
+⚙️ GitHub Actions Integration
+Keploy tests run automatically on every push via GitHub Actions:
+
+# .github/workflows/keploy.yml
+- name: Run Keploy Tests
+  run: |
+    curl -s https://raw.githubusercontent.com/keploy/keploy/main/install.sh | bash
+    keploy test -c "python3 app.py" --delay 5
